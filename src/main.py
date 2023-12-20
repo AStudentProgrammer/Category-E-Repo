@@ -18,7 +18,8 @@ swarm = TelloSwarm.fromIps([
     "192.168.1.112",
     "192.168.1.113",
     "192.168.1.114",
-    "192.168.1.115"
+    "192.168.1.115",
+    "192.168.1.116"
 ])
 
 # def battery_checker(drone_number, tello):
@@ -42,9 +43,10 @@ def up_movement(drone_number, tello):
 
 # main code
 swarm.connect()
-swarm.parallel(up_movement)
+swarm.takeoff()
+swarm.parallel(up_movement) # swarm.move_up(25)
 time.sleep(10)
-swarm.parallel(up_movement)
+swarm.parallel(up_movement) # swarm.move_up(25)
 swarm.land()
 
 swarm.end()
