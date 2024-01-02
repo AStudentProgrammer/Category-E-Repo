@@ -29,14 +29,15 @@ def up_movement(drone_number, tello):
 
 def square_movement(drone_number, tello):
 
-     tello.go_xyz_speed(0, -25, 0, 25)
-     time.sleep(5)
-     tello.go_xyz_speed(25, 0, 0, 25)
-     time.sleep(5)
-     tello.go_xyz_speed(0, 25, 0, 25)
-     time.sleep(5)
-     tello.go_xyz_speed(-25, 0, 0, 25)
-     time.sleep(5)
+    # Fly relative to its current position
+    tello.go_xyz_speed(0, -25, 0, 25)
+    time.sleep(5)
+    tello.go_xyz_speed(25, 0, 0, 25)
+    time.sleep(5)
+    tello.go_xyz_speed(0, 25, 0, 25)
+    time.sleep(5)
+    tello.go_xyz_speed(-25, 0, 0, 25)
+    time.sleep(5)
 
 # main code
 swarm.connect()
