@@ -56,7 +56,7 @@ def get_angle_btw_line(pos0, pos1, posref):
 Main capturing mouse program.
 """
 # Load background image.
-bground = Background('path_planning\Picture1.png', [0, 0], 1.6)
+bground = Background('path_planning/Picture1.png', [0, 0], 1.6)
 screen.blit(bground.image, bground.rect)
 
 path_wp = []
