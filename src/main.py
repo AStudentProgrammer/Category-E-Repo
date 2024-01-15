@@ -8,6 +8,14 @@ swarm = TelloSwarm.fromIps([
     "192.168.1.103",
 ])
 
+# Simulate the dataset retrieved from json
+set_of_number = {
+    "Set 1" : (0, -25, 0, 25),
+    "Set 2" : (25, 0, 0, 25),
+    "Set 3" : (0, 25, 0, 25),
+    "Set 4" : (-25, 0, 0, 25),
+}
+
 def battery_checker(drone_number, tello):
     tello.query_battery()
 
@@ -29,15 +37,21 @@ def up_movement(drone_number, tello):
 
 def square_movement(drone_number, tello):
 
-    # Fly relative to its current position
-    tello.go_xyz_speed(0, -25, 0, 25)
-    swarm.sync()
-    tello.go_xyz_speed(25, 0, 0, 25)
-    swarm.sync()
-    tello.go_xyz_speed(0, 25, 0, 25)
-    swarm.sync()
-    tello.go_xyz_speed(-25, 0, 0, 25)
-    swarm.sync()
+    index = 1
+
+    while index <= len(set_of_number):
+
+        # Pre-assign dictionary with more intuitive names
+        x_dirn = set_of_number["Set {number}".format(number = index)][0]
+        y_dirn = set_of_number["Set {number}".format(number = index)][1]
+        z_dirn = set_of_number["Set {number}".format(number = index)][2]
+        yaw = set_of_number["Set {number}".format(number = index)][3]
+        
+        # Fly relative to its current position
+        tello.go_xyz_speed(x_dirn, y_dirn, z_dirn, yaw)
+        swarm.sync()
+
+        index += 1
 
 # main code
 swarm.connect()
