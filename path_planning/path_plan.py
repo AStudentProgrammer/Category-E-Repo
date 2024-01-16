@@ -29,7 +29,9 @@ def get_dist_btw_pos(pos0, pos1):
     """
     x = abs(pos0[0] - pos1[0])
     y = abs(pos0[1] - pos1[1])
-    return int(x), int(y)
+    dist_px = math.hypot(x, y)
+    dist_cm = dist_px * MAP_SIZE_COEFF
+    return int(dist_cm), int(dist_px)
 
 
 def get_angle_btw_line(pos0, pos1, posref):
@@ -79,15 +81,15 @@ Compute the waypoints (distance and angle).
 # Append first pos ref. (dummy)
 path_wp.insert(0, (path_wp[0][0], path_wp[0][1] - 10))
 
-path_dist_x = []
-path_dist_y = []
+path_dist_cm = []
+path_dist_px = []
 path_angle = []
 for index in range(len(path_wp)):
     # Skip the first and second index.
     if index > 1:
-        dist_x, dist_y = get_dist_btw_pos(path_wp[index-1], path_wp[index])
-        path_dist_x.append(dist_x)
-        path_dist_y.append(dist_y)
+        dist_cm, dist_px = get_dist_btw_pos(path_wp[index-1], path_wp[index])
+        path_dist_cm.append(dist_cm)
+        path_dist_px.append(dist_px)
 
     # Skip the first and last index.
     if index > 0 and index < (len(path_wp) - 1):
@@ -96,26 +98,34 @@ for index in range(len(path_wp)):
 
 # Print out the information.
 print('path_wp: {}'.format(path_wp))
-print('dist_cm: {}'.format(path_dist_x))
-print('dist_px: {}'.format(path_dist_y))
+print('dist_cm: {}'.format(path_dist_cm))
+print('dist_px: {}'.format(path_dist_px))
 print('dist_angle: {}'.format(path_angle))
 
 """
 Save waypoints into JSON file.
 """
 waypoints = []
-for index in range(len(path_dist_x)):
+for index in range(len(path_dist_cm)):
     waypoints.append({
-        "dist_x": path_dist_x[index],
-        "dist_y": path_dist_y[index],
-        "angle_deg": path_angle[index]
+        "dist_cm": path_dist_cm[index],
+        "dist_px": path_dist_px[index],
+        "angle_deg": path_angle[index],
+        "waypoint {}".format(index + 1): [path_dist_cm[index], path_angle[index]]
     })
+
+waypoint_buf = {}
+for index in range(len(path_dist_cm)):
+    waypoint_buf.update(
+        {"waypoint {}".format(index + 1): [path_dist_cm[index], path_angle[index]]}
+    )
 
 # Save to JSON file.
 f = open('waypoint.json', 'w+')
 path_wp.pop(0)
 json.dump({
     "wp": waypoints,
-    "pos": path_wp
+    "pos": path_wp,
+    "wp1": waypoint_buf
 }, f, indent=4)
 f.close()
