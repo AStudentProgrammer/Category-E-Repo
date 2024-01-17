@@ -22,8 +22,8 @@ swarm = TelloSwarm.fromIps([
     "192.168.1.116"
 ])
 
-# def battery_checker(drone_number, tello):
-#     tello.query_battery()
+def battery_checker(drone_number, tello):
+    tello.query_battery()
 
 def left_movement(drone_number, tello):
     if drone_number <= 1:               # drone_number start from 0
@@ -45,13 +45,13 @@ def square_movement(drone_number, tello):
 
     # Fly relative to its current position
     tello.go_xyz_speed(0, -25, 0, 25)
-    time.sleep(5)
+    swarm.sync()
     tello.go_xyz_speed(25, 0, 0, 25)
-    time.sleep(5)
+    swarm.sync()
     tello.go_xyz_speed(0, 25, 0, 25)
-    time.sleep(5)
+    swarm.sync()
     tello.go_xyz_speed(-25, 0, 0, 25)
-    time.sleep(5)
+    swarm.sync()
 
 # main code
 swarm.connect()
