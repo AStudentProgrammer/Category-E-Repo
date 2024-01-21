@@ -2,6 +2,7 @@ from turtle import Turtle
 from turtle import Screen
 from tkinter import *
 from tkinter import messagebox
+from tkinter import simpledialog
 from datetime import datetime
 from grid import Grid
 import json, os
@@ -444,14 +445,17 @@ def to_export():
     global path_list,tracking_coordinates
     path_list.append(tracking_coordinates[1:])
     yes_no_popup = messagebox.askyesno(title="Export Path", message="Do you want export the drawned path?")
+    waypoint_number = simpledialog.askstring("Path","Plan number?(Key in 1 or 2)")
     messagebox.showinfo(title="Your Path will be exported", message=f"{path_list}")
 
 
 
     if yes_no_popup:
-
-        with open(f"{path_str}_{date_time}", "w") as path_file:
+        with open(f"Plan {waypoint_number}", "w") as path_file:
             json.dump(path_list, path_file)
+            
+            # with open(f"{path_str}_{date_time}", "w") as path_file:
+            #     json.dump(path_list, path_file)
 
 
 
