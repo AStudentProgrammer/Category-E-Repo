@@ -95,6 +95,7 @@ def waypoint_flight(drone_number, tello):
 
         swarm.sync()  
 
+        # mission pad detection
         if tello.get_mission_pad_id() != -1:
 
             m_id = 1
