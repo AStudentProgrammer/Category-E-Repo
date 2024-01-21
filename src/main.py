@@ -10,10 +10,11 @@ swarm = TelloSwarm.fromIps([
 
 # Simulate the dataset retrieved from json
 set_of_number = {
-    "Set 1" : (0, -25, 0, 25),
-    "Set 2" : (25, 0, 0, 25),
-    "Set 3" : (0, 25, 0, 25),
-    "Set 4" : (-25, 0, 0, 25),
+    # x, y, z, speed, yaw, mid1(unused), mid2(unused)
+    "Set 1" : (0, -100, 50, 25, 90, 1, 2),
+    "Set 2" : (100, -100, 50, 25, 90, 1, 2),
+    "Set 3" : (100, 0, 50, 25, 90, 1, 2),
+    "Set 4" : (0, 0, 50, 25, 90, 1, 2),
 }
 
 def battery_checker(drone_number, tello):
@@ -45,16 +46,19 @@ def square_movement(drone_number, tello):
         x_dirn = set_of_number["Set {number}".format(number = index)][0]
         y_dirn = set_of_number["Set {number}".format(number = index)][1]
         z_dirn = set_of_number["Set {number}".format(number = index)][2]
-        yaw = set_of_number["Set {number}".format(number = index)][3]
+        speed = set_of_number["Set {number}".format(number = index)][3]
+        yaw = set_of_number["Set {number}".format(number = index)][4]
         
         # Fly relative to its current position
-        tello.go_xyz_speed(x_dirn, y_dirn, z_dirn, yaw)
+        tello.rotate_clockwise(yaw)
+        tello.go_xyz_speed(x_dirn, (y_dirn - drone_number*90), z_dirn, speed)
         swarm.sync()
 
         index += 1
 
 # main code
 swarm.connect()
+swarm.parallel(lambda drone_number, tello : tello.set_mission_pad_detection_direction(2))
 swarm.takeoff()
 swarm.parallel(square_movement)
 swarm.land()
