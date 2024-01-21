@@ -2,10 +2,11 @@ import time
 from djitellopy import TelloSwarm
 import json
 
-json_File = open("Plan 1", "r")
-sample_load_file = json.load(json_File)
-# print(sample_load_file[0]["motion"])
-# print(sample_load_file[0]["distance"]) # in pixels
+json_File_one = open("Plan 1", "r")
+Plan_one = json.load(json_File_one)
+# print(Plan_one[0]["motion"])
+# print(Plan_one[0]["distance"]) # in pixels
+# print(len(Plan_one))
 
 # Collated list of Tellos to connect to
 swarm = TelloSwarm.fromIps([
@@ -71,8 +72,27 @@ def square_movement(drone_number, tello):
 
 def waypoint_flight(drone_number, tello):
 
-    waypoint_index = 0
-    
+    # waypoint_index = 0
+    number_of_waypoints = len(Plan_one) - 1
+
+    for waypoint_index in number_of_waypoints:
+
+        if Plan_one[waypoint_index]["motion"] == "forward":
+            distance = pixels_To_cm(Plan_one[waypoint_index]["distance"])
+            tello.move_forward(distance)
+
+        elif Plan_one[waypoint_index]["motion"] == "backward":
+            distance = pixels_To_cm(Plan_one[waypoint_index]["distance"])
+            tello.move_backward(distance)
+
+        elif Plan_one[waypoint_index]["motion"] == "rotate_right":
+            tello.rotate_clockwise(Plan_one[waypoint_index]["distance"])
+
+        elif Plan_one[waypoint_index]["motion"] == "rotate_left":
+            tello.rotate_counter_clockwise(Plan_one[waypoint_index]["distance"])
+
+        swarm.sync()
+
 
 # main code
 swarm.connect()
