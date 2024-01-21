@@ -14,6 +14,8 @@ swarm = TelloSwarm.fromIps([
     "192.168.1.103",
 ])
 
+print(len(swarm))
+
 def pixels_To_cm(pixels):
     
     real_map = 2000 # 2000cm
@@ -108,7 +110,7 @@ def waypoint_flight(drone_number, tello):
                 # drone index starts from 0, so 
                 if drone_number == (m_id - 1):
                     tello.go_xyz_speed(0, 0, 25, 0) # lower altitude first
-                    tello.go_xyz_speed_mid(0, 50, 25, 50, m_id)
+                    tello.go_xyz_speed_mid(0, 50, 25, 50, m_id) # land 50cm to the left of marker
                     if tello.get_mission_pad_id() == m_id:
                         tello.land()
                     else:
