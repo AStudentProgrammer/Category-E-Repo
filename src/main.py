@@ -72,6 +72,7 @@ def square_movement(drone_number, tello):
 
 def waypoint_flight(drone_number, tello):
 
+    # Waypoint flight sequence
     number_of_waypoints = len(Plan_one) - 1
 
     for waypoint_index in number_of_waypoints:
@@ -94,6 +95,26 @@ def waypoint_flight(drone_number, tello):
 
         swarm.sync()  
 
+        if tello.get_mission_pad_id() != -1:
+
+            m_id = 1
+
+            tello.send_control_command("stop") # hover
+            swarm.sync()
+
+            while m_id <= 4:
+                # Link m_id 1 to drone 1, and so on
+                # drone index starts from 0, so 
+                if drone_number == (m_id - 1):
+                    tello.go_xyz_speed(0, 0, 25, 0) # lower altitude first
+                    tello.go_xyz_speed_mid(0, 50, 25, 50, m_id)
+                    if tello.get_mission_pad_id() == m_id:
+                        tello.land()
+                    else:
+                        tello.go_xyz_speed(0, 0, 50, 0)
+
+                tello.send_keepalive()
+                m_id += 1
 
 # main code
 swarm.connect()
