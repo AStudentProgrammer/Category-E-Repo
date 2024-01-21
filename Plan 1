@@ -1,1 +1,1 @@
-[{"motion": "backward", "distance": -45.0}, {"motion": "right", "distance": 26.0}, {"motion": "forward", "distance": 493.0}, [[-198.0, -249.0], [-172.0, -249.0], [-172.0, 244.0]]]
+[{"motion": "forward", "distance": 409.0}, {"motion": "rotate_right", "distance": 90}, {"motion": "forward", "distance": 206.0}]

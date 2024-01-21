@@ -443,7 +443,7 @@ def to_export():
     It exports the path that the user has done, and it will work as the drone commands.
     """
     global path_list,tracking_coordinates
-    path_list.append(tracking_coordinates[1:])
+    # path_list.append(tracking_coordinates[1:])
     yes_no_popup = messagebox.askyesno(title="Export Path", message="Do you want export the drawned path?")
     waypoint_number = simpledialog.askstring("Path","Plan number?(Key in 1 or 2)")
     messagebox.showinfo(title="Your Path will be exported", message=f"{path_list}")

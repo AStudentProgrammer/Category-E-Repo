@@ -4,8 +4,14 @@ import json
 
 json_File = open("Plan 1", "r")
 sample_load_file = json.load(json_File)
-print(sample_load_file[0]["motion"])
-print(sample_load_file[0]["distance"]) # in pixels
+# print(sample_load_file[0]["motion"])
+# print(sample_load_file[0]["distance"]) # in pixels
+
+# Collated list of Tellos to connect to
+swarm = TelloSwarm.fromIps([
+    "192.168.1.102",
+    "192.168.1.103",
+])
 
 def pixels_To_cm(pixels):
     
@@ -14,12 +20,6 @@ def pixels_To_cm(pixels):
 
     cm = (real_map/picture_map) * pixels
     return cm
-
-# Collated list of Tellos to connect to
-swarm = TelloSwarm.fromIps([
-    "192.168.1.102",
-    "192.168.1.103",
-])
 
 # Simulate the dataset retrieved from json
 set_of_number = {
@@ -68,6 +68,11 @@ def square_movement(drone_number, tello):
         swarm.sync()
 
         index += 1
+
+def waypoint_flight(drone_number, tello):
+
+    waypoint_index = 0
+    
 
 # main code
 swarm.connect()
