@@ -72,18 +72,19 @@ def square_movement(drone_number, tello):
 
 def waypoint_flight(drone_number, tello):
 
-    # waypoint_index = 0
     number_of_waypoints = len(Plan_one) - 1
 
     for waypoint_index in number_of_waypoints:
 
         if Plan_one[waypoint_index]["motion"] == "forward":
             distance = pixels_To_cm(Plan_one[waypoint_index]["distance"])
-            tello.move_forward(distance)
+            # tello.move_forward(distance)
+            tello.go_xyz_speed(distance, 0, 50, 50)
 
         elif Plan_one[waypoint_index]["motion"] == "backward":
             distance = pixels_To_cm(Plan_one[waypoint_index]["distance"])
-            tello.move_backward(distance)
+            # tello.move_backward(distance)
+            tello.go_xyz_speed(distance, 0, 50, 50)
 
         elif Plan_one[waypoint_index]["motion"] == "rotate_right":
             tello.rotate_clockwise(Plan_one[waypoint_index]["distance"])
@@ -91,14 +92,14 @@ def waypoint_flight(drone_number, tello):
         elif Plan_one[waypoint_index]["motion"] == "rotate_left":
             tello.rotate_counter_clockwise(Plan_one[waypoint_index]["distance"])
 
-        swarm.sync()
+        swarm.sync()  
 
 
 # main code
 swarm.connect()
 swarm.parallel(lambda drone_number, tello : tello.set_mission_pad_detection_direction(2))
 swarm.takeoff()
-swarm.parallel(square_movement)
+swarm.parallel(waypoint_flight)
 swarm.land()
 
 swarm.end()
