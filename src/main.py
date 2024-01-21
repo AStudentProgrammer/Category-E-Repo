@@ -97,6 +97,11 @@ def waypoint_flight(drone_number, tello):
 
         swarm.sync()  
 
+        # wall detection, failsafe
+        while tello.send_read_command_int("EXT tof?") < 1000: # less than 1000mm
+            tello.go_xyz_speed(-10, 0, 50, 10) # go back by 10cm
+            swarm.sync()
+
         # mission pad detection
         if tello.get_mission_pad_id() != -1:
 
