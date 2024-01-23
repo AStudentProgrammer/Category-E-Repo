@@ -11,7 +11,7 @@ Plan_one = json.load(json_File_one)
 # Collated list of Tellos to connect to
 swarm = TelloSwarm.fromIps([
     "192.168.1.102",
-    "192.168.1.103",
+    # "192.168.1.103",
 ])
 
 def pixels_To_cm(pixels):
@@ -20,7 +20,7 @@ def pixels_To_cm(pixels):
     picture_map = 500 # 500 pixels
 
     cm = (real_map/picture_map) * pixels
-    return cm
+    return int(cm)
 
 # Simulate the dataset retrieved from json
 set_of_number = {
@@ -72,19 +72,19 @@ def square_movement(drone_number, tello):
 
 def waypoint_flight(drone_number, tello):
 
-    number_of_waypoints = len(Plan_one) - 1
+    number_of_waypoints = len(Plan_one)
 
-    for waypoint_index in number_of_waypoints:
+    for waypoint_index in range(number_of_waypoints):
 
         if Plan_one[waypoint_index]["motion"] == "forward":
             distance = pixels_To_cm(Plan_one[waypoint_index]["distance"])
             # tello.move_forward(distance)
-            tello.go_xyz_speed(distance, 0, 50, 50)
+            tello.go_xyz_speed(distance, 0, 0, 50)
 
         elif Plan_one[waypoint_index]["motion"] == "backward":
             distance = pixels_To_cm(Plan_one[waypoint_index]["distance"])
             # tello.move_backward(distance)
-            tello.go_xyz_speed(distance, 0, 50, 50)
+            tello.go_xyz_speed(distance, 0, 0, 50)
 
         elif Plan_one[waypoint_index]["motion"] == "rotate_right":
             tello.rotate_clockwise(Plan_one[waypoint_index]["distance"])
@@ -97,7 +97,7 @@ def waypoint_flight(drone_number, tello):
 
 # main code
 swarm.connect()
-swarm.parallel(lambda drone_number, tello : tello.set_mission_pad_detection_direction(2))
+# swarm.parallel(lambda drone_number, tello : tello.set_mission_pad_detection_direction(2))
 swarm.takeoff()
 swarm.parallel(waypoint_flight)
 swarm.land()

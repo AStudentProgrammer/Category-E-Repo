@@ -13,7 +13,7 @@ GREEN = "#b7d5ac"
 BLUE = "#797EF6"
 PICTIONBLUE = "#1AA7EC"
 WHITE ="#FFFFFF"
-START_POSITION = (-198.0, -204.0)  # Drone start position
+START_POSITION = (-170, -79)  # Drone start position
 
 
 """Screen setup"""
@@ -84,20 +84,20 @@ def tracking(coordinates):
         if distance[0] == 0:  # I'm moving over y coordinate
             if distance[1] > 0:  # I'm moving Forward
                 position_dict["motion"] = "forward"
-                position_dict["distance"] = distance[1]
+                position_dict["distance"] = abs(distance[1])
                 path_list.append(position_dict)
             else:
                 position_dict["motion"] = "backward"
-                position_dict["distance"] = distance[1]
+                position_dict["distance"] = abs(distance[1])
                 path_list.append(position_dict)
         elif distance[0] != 0:
             if distance[0] > 0:  # I'm Moving left
                 position_dict["motion"] = "right"
-                position_dict["distance"] = distance[0]
+                position_dict["distance"] = abs(distance[0])
                 path_list.append(position_dict)
             else:
                 position_dict["motion"] = "left"
-                position_dict["distance"] = distance[0]
+                position_dict["distance"] = abs(distance[0])
                 path_list.append(position_dict)
 
     elif count_rotation == 1 or count_rotation == -3:
@@ -116,21 +116,21 @@ def tracking(coordinates):
         if distance[0] == 0:  # Now; Y axis is -X and so on
             if distance[1] > 0:
                 position_dict["motion"] = "left"
-                position_dict["distance"] = distance[1]
+                position_dict["distance"] = abs(distance[1])
                 path_list.append(position_dict)
             else:
                 position_dict["motion"] = "right"
-                position_dict["distance"] = distance[1]
+                position_dict["distance"] = abs(distance[1])
                 path_list.append(position_dict)
 
         elif distance[0] != 0:
             if distance[0] > 0:  # I'm Moving left
                 position_dict["motion"] = "forward"
-                position_dict["distance"] = distance[0]
+                position_dict["distance"] = abs(distance[0])
                 path_list.append(position_dict)
             else:
                 position_dict["motion"] = "backward"
-                position_dict["distance"] = distance[0]
+                position_dict["distance"] = abs(distance[0])
                 path_list.append(position_dict)
 
     elif count_rotation == 2 or count_rotation == -2:
@@ -147,21 +147,21 @@ def tracking(coordinates):
         if distance[0] == 0:
             if distance[1] > 0:
                 position_dict["motion"] = "backward"
-                position_dict["distance"] = distance[1]
+                position_dict["distance"] = abs(distance[1])
                 path_list.append(position_dict)
             else:
                 position_dict["motion"] = "forward"
-                position_dict["distance"] = distance[1]
+                position_dict["distance"] = abs(distance[1])
                 path_list.append(position_dict)
 
         elif distance[0] != 0:
             if distance[0] > 0:
                 position_dict["motion"] = "left"
-                position_dict["distance"] = distance[0]
+                position_dict["distance"] = abs(distance[0])
                 path_list.append(position_dict)
             else:
                 position_dict["motion"] = "right"
-                position_dict["distance"] = distance[0]
+                position_dict["distance"] = abs(distance[0])
                 path_list.append(position_dict)
 
     elif count_rotation == 3 or count_rotation == -1:
@@ -179,20 +179,20 @@ def tracking(coordinates):
         if distance[0] == 0:
             if distance[1] > 0:
                 position_dict["motion"] = "right"
-                position_dict["distance"] = distance[1]
+                position_dict["distance"] = abs(distance[1])
                 path_list.append(position_dict)
             else:
                 position_dict["motion"] = "left"
-                position_dict["distance"] = distance[1]
+                position_dict["distance"] = abs(distance[1])
                 path_list.append(position_dict)
         elif distance[0] != 0:
             if distance[0] > 0:
                 position_dict["motion"] = "backward"
-                position_dict["distance"] = distance[0]
+                position_dict["distance"] = abs(distance[0])
                 path_list.append(position_dict)
             else:
                 position_dict["motion"] = "forward"
-                position_dict["distance"] = distance[0]
+                position_dict["distance"] = abs(distance[0])
                 path_list.append(position_dict)
 
 
