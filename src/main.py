@@ -1,18 +1,18 @@
 import time
 from djitellopy import TelloSwarm
 import json
+import keyboard
 
 json_File_one = open("Plan 1", "r")
 Plan_one = json.load(json_File_one)
-# print(Plan_one[0]["motion"])
-# print(Plan_one[0]["distance"]) # in pixels
-# print(len(Plan_one))
 
 # Collated list of Tellos to connect to
 swarm = TelloSwarm.fromIps([
     "192.168.1.102",
     # "192.168.1.103",
 ])
+
+print(len(swarm))
 
 def pixels_To_cm(pixels):
     
@@ -94,6 +94,77 @@ def waypoint_flight(drone_number, tello):
 
         swarm.sync()  
 
+        # wall detection, failsafe
+        while tello.send_read_command_int("EXT tof?") < 1000: # less than 1000mm
+            tello.go_xyz_speed(-10, 0, 50, 10) # go back by 10cm
+            swarm.sync()
+
+        # mission pad detection
+        if tello.get_mission_pad_id() != -1:
+
+            m_id = 1
+
+            tello.send_control_command("stop") # hover
+            swarm.sync()
+
+            while m_id <= 4:
+                # Link m_id 1 to drone 1, and so on
+                # drone index starts from 0, so 
+                if drone_number == (m_id - 1):
+                    tello.go_xyz_speed(0, 0, 25, 0) # lower altitude first
+                    tello.go_xyz_speed_mid(0, 50, 25, 50, m_id) # land 50cm to the left of marker
+                    if tello.get_mission_pad_id() == m_id:
+                        tello.land()
+                    else:
+                        tello.go_xyz_speed(0, 0, 50, 0)
+
+                tello.send_keepalive()
+                m_id += 1
+
+def move_with_keyboard(drone_number, tello):
+    Takeoff_flag = False
+
+    while True:
+        if keyboard.is_pressed('t'):
+            tello.takeoff()
+            Takeoff_flag = True
+
+        elif keyboard.is_pressed('l'):
+            tello.land()
+            Takeoff_flag = False
+
+        elif Takeoff_flag:
+            if keyboard.is_pressed('up'):
+                tello.move_forward(20)
+
+                # Safety measure func
+                # register tof value as int
+                tof_value = tello.send_read_command("EXT tof?") # its in string initially
+                tof_value = int(tof_value[4:])
+
+                while tof_value < 1000: # less than 1000mm
+                    tello.go_xyz_speed(-20, 0, 0, 10) # go back by 10cm
+                    swarm.sync()
+
+                    # reregister tof value as int
+                    tof_value = tello.send_read_command("EXT tof?") # its in string initially
+                    tof_value = int(tof_value[4:])
+                # Safety measure func
+
+                else:
+                    continue
+
+            elif keyboard.is_pressed('down'):
+                tello.move_back(20)
+          
+            elif keyboard.is_pressed('left'):
+                tello.move_left(20)
+
+            elif keyboard.is_pressed('right'):
+                tello.move_right(20)
+
+            else:
+                continue
 
 # main code
 swarm.connect()
