@@ -1,6 +1,7 @@
 import time
 from djitellopy import TelloSwarm
 import json
+import keyboard
 
 json_File_one = open("Plan 1", "r")
 Plan_one = json.load(json_File_one)
@@ -10,7 +11,7 @@ Plan_one = json.load(json_File_one)
 
 # Collated list of Tellos to connect to
 swarm = TelloSwarm.fromIps([
-    "192.168.1.102",
+    # "192.168.1.102",
     "192.168.1.103",
 ])
 
@@ -124,12 +125,57 @@ def waypoint_flight(drone_number, tello):
                 tello.send_keepalive()
                 m_id += 1
 
+def move_with_keyboard(drone_number, tello):
+    Takeoff_flag = False
+
+    while True:
+        if keyboard.is_pressed('t'):
+            tello.takeoff()
+            Takeoff_flag = True
+
+        elif keyboard.is_pressed('l'):
+            tello.land()
+            Takeoff_flag = False
+
+        elif Takeoff_flag:
+            if keyboard.is_pressed('up'):
+                tello.move_forward(20)
+
+                # Safety measure func
+                # register tof value as int
+                tof_value = tello.send_read_command("EXT tof?") # its in string initially
+                tof_value = int(tof_value[4:])
+
+                while tof_value < 1000: # less than 1000mm
+                    tello.go_xyz_speed(-20, 0, 0, 10) # go back by 10cm
+                    swarm.sync()
+
+                    # reregister tof value as int
+                    tof_value = tello.send_read_command("EXT tof?") # its in string initially
+                    tof_value = int(tof_value[4:])
+                # Safety measure func
+
+                else:
+                    continue
+
+            elif keyboard.is_pressed('down'):
+                tello.move_back(20)
+          
+            elif keyboard.is_pressed('left'):
+                tello.move_left(20)
+
+            elif keyboard.is_pressed('right'):
+                tello.move_right(20)
+
+            else:
+                continue
+
 # main code
 swarm.connect()
-swarm.parallel(lambda drone_number, tello : tello.set_mission_pad_detection_direction(2))
-swarm.takeoff()
-swarm.parallel(waypoint_flight)
-swarm.land()
+# swarm.parallel(lambda drone_number, tello : tello.set_mission_pad_detection_direction(2))
+# swarm.takeoff()
+swarm.parallel(move_with_keyboard)
+# swarm.land()
 
 swarm.end()
 
