@@ -5,9 +5,6 @@ import keyboard
 
 json_File_one = open("Plan 1", "r")
 Plan_one = json.load(json_File_one)
-# print(Plan_one[0]["motion"])
-# print(Plan_one[0]["distance"]) # in pixels
-# print(len(Plan_one))
 
 # Collated list of Tellos to connect to
 swarm = TelloSwarm.fromIps([
