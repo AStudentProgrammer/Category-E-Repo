@@ -14,15 +14,13 @@ swarm = TelloSwarm.fromIps([
     "192.168.1.103",
 ])
 
-print(len(swarm))
-
 def pixels_To_cm(pixels):
     
     real_map = 2000 # 2000cm
     picture_map = 500 # 500 pixels
 
     cm = (real_map/picture_map) * pixels
-    return cm
+    return int(cm)
 
 # Simulate the dataset retrieved from json
 set_of_number = {
@@ -75,19 +73,19 @@ def square_movement(drone_number, tello):
 def waypoint_flight(drone_number, tello):
 
     # Waypoint flight sequence
-    number_of_waypoints = len(Plan_one) - 1
+    number_of_waypoints = len(Plan_one)
 
-    for waypoint_index in number_of_waypoints:
+    for waypoint_index in range(number_of_waypoints):
 
         if Plan_one[waypoint_index]["motion"] == "forward":
             distance = pixels_To_cm(Plan_one[waypoint_index]["distance"])
             # tello.move_forward(distance)
-            tello.go_xyz_speed(distance, 0, 50, 50)
+            tello.go_xyz_speed(distance, 0, 0, 50)
 
         elif Plan_one[waypoint_index]["motion"] == "backward":
             distance = pixels_To_cm(Plan_one[waypoint_index]["distance"])
             # tello.move_backward(distance)
-            tello.go_xyz_speed(distance, 0, 50, 50)
+            tello.go_xyz_speed(distance, 0, 0, 50)
 
         elif Plan_one[waypoint_index]["motion"] == "rotate_right":
             tello.rotate_clockwise(Plan_one[waypoint_index]["distance"])
@@ -109,22 +107,36 @@ def waypoint_flight(drone_number, tello):
                 # Link m_id 1 to drone 1, and so on
                 # drone index starts from 0, so 
                 if drone_number == (m_id - 1):
-                    tello.go_xyz_speed(0, 0, 25, 0) # lower altitude first
-                    tello.go_xyz_speed_mid(0, 50, 25, 50, m_id) # land 50cm to the left of marker
+                    for time_index in range(m_id - 1):
+                        tello.query_active() # send random command to keep it alive
+                        time.sleep(7) # 7 seconds because thats the timeout for commands
+
+                    tello.go_xyz_speed(0, 0, -25, 10) # lower altitude first
+                    tello.go_xyz_speed_mid(0, 0, 25, 50, m_id) # land 50cm to the left of marker
                     if tello.get_mission_pad_id() == m_id:
                         tello.land()
+                        tello.end()
+                        while True:
+                            swarm.sync()
                     else:
-                        tello.go_xyz_speed(0, 0, 50, 0)
+                        tello.go_xyz_speed(0, 0, 25, 10)
 
-                tello.send_keepalive()
+                    for time_index in range(4 - m_id):
+                        tello.query_active()
+                        time.sleep(7) # 7 seconds because thats the timeout for commands
+
+                tello.query_active()
                 m_id += 1
+
+    tello.land()
+    tello.end()
 
 # main code
 swarm.connect()
 swarm.parallel(lambda drone_number, tello : tello.set_mission_pad_detection_direction(2))
 swarm.takeoff()
 swarm.parallel(waypoint_flight)
-swarm.land()
+# swarm.land()
 
-swarm.end()
+# swarm.end()
 
