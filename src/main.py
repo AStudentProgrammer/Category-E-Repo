@@ -136,6 +136,7 @@ def mission_pad_detection(drone_number, tello):
             tello.send_keepalive()
             m_id += 1
 
+
 def waypoint_flight(drone_number, tello):
 
     # global leader_values
@@ -169,7 +170,7 @@ def flight_motion(drone_number, tello):
     global waypoint_index
     global Dist_travelled
 
-    if Land_Flag & Flag_mask["Drone {}".format(drone_number + 1)]:
+    if Land_Flag & land_Flag_mask["Drone {}".format(drone_number + 1)]:
         swarm.sync()
     else:
         if Plan_one[waypoint_index]["motion"] == "forward":
@@ -240,6 +241,8 @@ def move_with_keyboard(drone_number, tello):
 swarm.connect()
 # swarm.parallel(lambda drone_number, tello : tello.set_mission_pad_detection_direction(2))
 # swarm.takeoff()
+for waypoint_index in len(NO_OF_WAYPOINTS):
+    swarm.parallel(flight_motion)
 # swarm.parallel(distance_checker)
 # swarm.land()
 
