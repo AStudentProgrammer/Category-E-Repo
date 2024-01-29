@@ -26,6 +26,26 @@ NO_OF_WAYPOINTS = len(Plan_one)
 
 # Flags
 Land_Flag = 0 # 0000 0000 0000 0000
+Dist_travelled = 0.0
+
+land_Flag_mask = {
+    "Drone 1" : 1,
+    "Drone 2" : 2,
+    "Drone 3" : 4,
+    "Drone 4" : 8,
+    "Drone 5" : 16,
+    "Drone 6" : 32,
+    "Drone 7" : 64,
+    "Drone 8" : 128,
+    "Drone 9" : 256,
+    "Drone 10" : 512,
+    "Drone 11" : 1024,
+    "Drone 12" : 2048,
+    "Drone 13" : 4096,
+    "Drone 14" : 8192,
+    "Drone 15" : 16384,
+    "Drone 16" : 32768,
+}
 
 # leader_values = Queue(maxsize=1)
 
@@ -143,7 +163,33 @@ def waypoint_flight(drone_number, tello):
 
         swarm.sync()  
 
+def flight_motion(drone_number, tello):
 
+    global Land_Flag
+    global waypoint_index
+    global Dist_travelled
+
+    if Land_Flag & Flag_mask["Drone {}".format(drone_number + 1)]:
+        swarm.sync()
+    else:
+        if Plan_one[waypoint_index]["motion"] == "forward":
+            speed = 50
+            tello.send_rc_control(0, speed, 0, 0)
+
+        elif Plan_one[waypoint_index]["motion"] == "backward":
+            speed = -50
+            tello.send_rc_control(0, speed, 0, 0)
+
+        elif Plan_one[waypoint_index]["motion"] == "rotate_right":
+            tello.rotate_clockwise(Plan_one[waypoint_index]["distance"])
+
+        elif Plan_one[waypoint_index]["motion"] == "rotate_left":
+            tello.rotate_counter_clockwise(Plan_one[waypoint_index]["distance"])
+
+        swarm.sync()
+
+    if drone_number == 0:
+        Dist_travelled += (speed * 0.001) # use the 50cm/s      
 
 def move_with_keyboard(drone_number, tello):
     Takeoff_flag = False
