@@ -35,18 +35,6 @@ set_of_number = {
 def battery_checker(drone_number, tello):
     tello.query_battery()
 
-def left_movement(drone_number, tello):
-    if drone_number <= 1:               # drone_number start from 0
-        tello.move_left(100) 
-
-def right_movement(drone_number, tello):
-    if drone_number > 1:
-        tello.move_right(100)
-
-def forward_movement(drone_number, tello):
-    tello.move_forward(50)
-    swarm.sync()
-
 def distance_checker(drone_number, tello):
     distance = 0.0
     speed = 0.0
