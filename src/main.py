@@ -1,6 +1,7 @@
 import time
 from djitellopy import TelloSwarm
 import json
+# from queue import Queue
 import keyboard
 
 json_File_one = open("Plan 1", "r")
@@ -12,7 +13,7 @@ swarm = TelloSwarm.fromIps([
     # "192.168.1.103",
 ])
 
-print(len(swarm))
+# leader_values = Queue(maxsize=1)
 
 def pixels_To_cm(pixels):
     
@@ -46,9 +47,23 @@ def forward_movement(drone_number, tello):
     tello.move_forward(50)
     swarm.sync()
 
-def up_movement(drone_number, tello):
-    tello.move_up(25)
-    swarm.sync()
+def distance_checker(drone_number, tello):
+    distance = 0.0
+    speed = 0.0
+    prev_time = time.time()
+
+    while True:
+        acceleration_x = tello.get_acceleration_x()
+        if (acceleration_x < 100.0) and (acceleration_x > -100.0):
+            acceleration_x = 0.0
+        else:
+            acceleration_x = tello.get_acceleration_x()
+        current_time = time.time()
+        time_increment = current_time - prev_time
+        speed += acceleration_x * time_increment
+        distance += speed * time_increment
+        print(distance)
+        prev_time = current_time
 
 def square_movement(drone_number, tello):
 
@@ -72,6 +87,9 @@ def square_movement(drone_number, tello):
 
 def waypoint_flight(drone_number, tello):
 
+    # global leader_values
+    # leader_values.put('a')
+
     number_of_waypoints = len(Plan_one)
 
     for waypoint_index in range(number_of_waypoints):
@@ -82,7 +100,7 @@ def waypoint_flight(drone_number, tello):
             tello.go_xyz_speed(distance, 0, 0, 50)
 
         elif Plan_one[waypoint_index]["motion"] == "backward":
-            distance = pixels_To_cm(Plan_one[waypoint_index]["distance"])
+            distance = - pixels_To_cm(Plan_one[waypoint_index]["distance"])
             # tello.move_backward(distance)
             tello.go_xyz_speed(distance, 0, 0, 50)
 
@@ -178,9 +196,9 @@ def move_with_keyboard(drone_number, tello):
 # main code
 swarm.connect()
 # swarm.parallel(lambda drone_number, tello : tello.set_mission_pad_detection_direction(2))
-swarm.takeoff()
-swarm.parallel(waypoint_flight)
-swarm.land()
+# swarm.takeoff()
+swarm.parallel(distance_checker)
+# swarm.land()
 
 swarm.end()
 
