@@ -18,7 +18,8 @@ Plan_one = json.load(json_File_one)
 
 # Collated list of Tellos to connect to
 swarm = TelloSwarm.fromIps([
-    "192.168.1.102",
+    # "192.168.10.1",
+    # "192.168.1.102",
     # "192.168.1.103",
 ])
 
@@ -26,7 +27,10 @@ NO_OF_WAYPOINTS = len(Plan_one)
 
 # Flags
 Land_Flag = 0 # 0000 0000 0000 0000
+
+# Drones shared variables/resources
 Dist_travelled = 0.0
+Speed = 20
 
 land_Flag_mask = {
     "Drone 1" : 1,
@@ -46,8 +50,6 @@ land_Flag_mask = {
     "Drone 15" : 16384,
     "Drone 16" : 32768,
 }
-
-# leader_values = Queue(maxsize=1)
 
 def pixels_To_cm(pixels):
     
@@ -136,11 +138,38 @@ def mission_pad_detection(drone_number, tello):
             tello.send_keepalive()
             m_id += 1
 
+def hovering(drone_number, tello):
+
+    global Land_Flag
+
+    if Land_Flag & land_Flag_mask["Drone {}".format(drone_number + 1)]:
+        swarm.sync()
+    else:
+        tello.send_control_command("stop")
+        swarm.sync()
+
+def new_mission_pad_detection(drone_number, tello):
+
+    global Land_Flag
+    global prev_timing
+
+    if tello.get_mission_pad_id() != -1:
+        m_id = tello.get_mission_pad_id()
+
+        swarm.parallel(hovering)
+        tello.go_xyz_speed(20, 20, 25, 20) # lower altitude first
+        tello.go_xyz_speed_mid(20, 20, 25, 20, m_id) # land 50cm to the left of marker
+        tello.land()
+        tello.end()
+        Land_Flag += land_Flag_mask["Drone {}".format(drone_number + 1)]
+
+        # Repeat of main code
+        swarm.parallel(flight_motion)
+        prev_timing = time.time()
+    else:
+        return
 
 def waypoint_flight(drone_number, tello):
-
-    # global leader_values
-    # leader_values.put('a')
 
     number_of_waypoints = len(Plan_one)
 
@@ -168,29 +197,23 @@ def flight_motion(drone_number, tello):
 
     global Land_Flag
     global waypoint_index
-    global Dist_travelled
+
+    global Speed
 
     if Land_Flag & land_Flag_mask["Drone {}".format(drone_number + 1)]:
-        swarm.sync()
+        return
     else:
         if Plan_one[waypoint_index]["motion"] == "forward":
-            speed = 50
-            tello.send_rc_control(0, speed, 0, 0)
+            tello.send_rc_control(0, Speed, 0, 0)
 
         elif Plan_one[waypoint_index]["motion"] == "backward":
-            speed = -50
-            tello.send_rc_control(0, speed, 0, 0)
+            tello.send_rc_control(0, -Speed, 0, 0)
 
         elif Plan_one[waypoint_index]["motion"] == "rotate_right":
             tello.rotate_clockwise(Plan_one[waypoint_index]["distance"])
 
         elif Plan_one[waypoint_index]["motion"] == "rotate_left":
-            tello.rotate_counter_clockwise(Plan_one[waypoint_index]["distance"])
-
-        swarm.sync()
-
-    if drone_number == 0:
-        Dist_travelled += (speed * 0.001) # use the 50cm/s      
+            tello.rotate_counter_clockwise(Plan_one[waypoint_index]["distance"])     
 
 def move_with_keyboard(drone_number, tello):
     Takeoff_flag = False
@@ -206,7 +229,7 @@ def move_with_keyboard(drone_number, tello):
 
         elif Takeoff_flag:
             if keyboard.is_pressed('up'):
-                tello.move_forward(20)
+                tello.send_rc_control(0, 20, 0, 0)
 
                 # Safety measure func
                 # register tof value as int
@@ -214,7 +237,7 @@ def move_with_keyboard(drone_number, tello):
                 tof_value = int(tof_value[4:])
 
                 while tof_value < 1000: # less than 1000mm
-                    tello.go_xyz_speed(-20, 0, 0, 10) # go back by 10cm
+                    tello.send_rc_control(0, -20, 0, 0)
                     swarm.sync()
 
                     # reregister tof value as int
@@ -226,7 +249,7 @@ def move_with_keyboard(drone_number, tello):
                     continue
 
             elif keyboard.is_pressed('down'):
-                tello.move_back(20)
+                tello.send_rc_control(0, -20, 0, 0)
           
             elif keyboard.is_pressed('left'):
                 tello.move_left(20)
@@ -239,12 +262,30 @@ def move_with_keyboard(drone_number, tello):
 
 # main code
 swarm.connect()
-# swarm.parallel(lambda drone_number, tello : tello.set_mission_pad_detection_direction(2))
-# swarm.takeoff()
-for waypoint_index in len(NO_OF_WAYPOINTS):
+swarm.parallel(lambda drone_number, tello : tello.set_mission_pad_detection_direction(2))
+swarm.takeoff()
+for waypoint_index in range(NO_OF_WAYPOINTS):
+
+    waypoint_dist = pixels_To_cm(Plan_one[waypoint_index]["distance"])
+
     swarm.parallel(flight_motion)
-# swarm.parallel(distance_checker)
-# swarm.land()
+
+    prev_timing = time.time()
+
+    while Dist_travelled < waypoint_dist:
+        swarm.sequential(new_mission_pad_detection)
+        current_timing = time.time()
+        time_interval = current_timing - prev_timing
+        Dist_travelled += Speed * time_interval
+        prev_timing = current_timing
+
+    # swarm.parallel(failsafe)
+    Dist_travelled = 0.0
+    swarm.parallel(hovering)
+    time.sleep(7)
+    
+# swarm.parallel(move_with_keyboard)
+swarm.land()
 
 swarm.end()
 
