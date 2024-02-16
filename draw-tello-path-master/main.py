@@ -18,7 +18,7 @@ START_POSITION = (-170, -79)  # Drone start position
 
 """Screen setup"""
 
-BGPIC = "draw-tello-path-master/images/Capture.png"
+BGPIC = "draw-tello-path-master/images/Capture.PNG"
 DRON_ICON = "/images/drone_icon.png"
 
 screen = Screen()
