@@ -44,18 +44,37 @@ def flight_motion(tello):
     elif Plan_one[waypoint_index]["motion"] == "rotate_left":
         tello.rotate_counter_clockwise(Plan_one[waypoint_index]["distance"])     
 
-def failsafe(tello):
+def failSafe(tello):
     # Safety measure func
     # register tof value as int
-    tof_value = tello.send_read_command("EXT tof?") # its in string initially
-    tof_value = int(tof_value[4:])
+    max_retries = 4
+
+    for retry in range(max_retries):
+        try:
+
+            tof_value = tello.send_read_command("EXT tof?") # its in string initially
+            tof_value = int(tof_value[4:]) # attempt to convert to int
+            break
+        
+        except:
+            continue
 
     while tof_value < 1000: # less than 1000mm
         tello.go_xyz_speed(-20, 0, 0, 10)
 
         # reregister tof value as int
-        tof_value = tello.send_read_command("EXT tof?") # its in string initially
-        tof_value = int(tof_value[4:])
+        for retry in range(max_retries):
+            try:
+
+                tof_value = tello.send_read_command("EXT tof?") # its in string initially
+                tof_value = int(tof_value[4:]) # attempt to convert to int
+                break
+        
+            except:
+                continue
+
+        if retry == (max_retries - 1):
+            return
 
 tello.connect()
 tello.takeoff()
@@ -75,11 +94,10 @@ for waypoint_index in range(NO_OF_WAYPOINTS):
         Dist_travelled += Speed * time_interval
         prev_timing = current_timing
 
-    # swarm.parallel(failsafe)
-    failsafe(tello)
-    Dist_travelled = 0.0
     tello.send_command_without_return('stop')
-    time.sleep(7)
+    time.sleep(3)
+    failSafe(tello)
+    Dist_travelled = 0.0
 
 tello.land()
 tello.end()

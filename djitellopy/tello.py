@@ -501,7 +501,7 @@ class Tello:
             self.LOGGER.error(e)
 
         if any(word in response for word in ('error', 'ERROR', 'False')):
-            self.raise_result_error(command, response)
+            # self.raise_result_error(command, response)
             return "Error: this code should never be reached"
 
         return response
