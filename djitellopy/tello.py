@@ -100,11 +100,13 @@ class Tello:
     def __init__(self,
                  host=TELLO_IP,
                  retry_count=RETRY_COUNT,
-                 vs_udp=VS_UDP_PORT):
+                 vs_udp=VS_UDP_PORT,
+                 control_udp_port=CONTROL_UDP_PORT,
+                 state_udp_port=STATE_UDP_PORT):
 
         global threads_initialized, client_socket, drones
 
-        self.address = (host, Tello.CONTROL_UDP_PORT)
+        self.address = (host, control_udp_port)
         self.stream_on = False
         self.retry_count = retry_count
         self.last_received_command_timestamp = time.time()
@@ -113,13 +115,13 @@ class Tello:
         if not threads_initialized:
             # Run Tello command responses UDP receiver on background
             client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            client_socket.bind(("", Tello.CONTROL_UDP_PORT))
+            client_socket.bind(("", control_udp_port))
             response_receiver_thread = Thread(target=Tello.udp_response_receiver)
             response_receiver_thread.daemon = True
             response_receiver_thread.start()
-
+            
             # Run state UDP receiver on background
-            state_receiver_thread = Thread(target=Tello.udp_state_receiver)
+            state_receiver_thread = Thread(target=Tello.udp_state_receiver, args=(state_udp_port,))
             state_receiver_thread.daemon = True
             state_receiver_thread.start()
 
@@ -127,7 +129,7 @@ class Tello:
 
         drones[host] = {'responses': [], 'state': {}}
 
-        self.LOGGER.info("Tello instance was initialized. Host: '{}'. Port: '{}'.".format(host, Tello.CONTROL_UDP_PORT))
+        self.LOGGER.info("Tello instance was initialized. Host: '{}'. Port: '{}'.".format(host, control_udp_port))
 
         self.vs_udp_port = vs_udp
 
@@ -171,14 +173,14 @@ class Tello:
                 break
 
     @staticmethod
-    def udp_state_receiver():
+    def udp_state_receiver(state_port):
         """Setup state UDP receiver. This method listens for state information from
         Tello. Must be run from a background thread in order to not block
         the main thread.
         Internal method, you normally wouldn't call this yourself.
         """
         state_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        state_socket.bind(("", Tello.STATE_UDP_PORT))
+        state_socket.bind(("", state_port))
 
         while True:
             try:

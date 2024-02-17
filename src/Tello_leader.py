@@ -4,11 +4,6 @@ import json
 import numpy as np
 import cv2
 
-json_File_one = open("Plan 1", "r")
-Plan_one = json.load(json_File_one)
-
-NO_OF_WAYPOINTS = len(Plan_one)
-
 # Flags
 Land_Flag = 0 # 0000 0000 0000 0000
 
@@ -16,7 +11,17 @@ Land_Flag = 0 # 0000 0000 0000 0000
 Dist_travelled = 0.0
 Speed = 50
 
-tello = Tello(host = "192.168.1.30")
+# Tello leader parameters
+tello_leader = Tello(host = "192.168.1.29")
+json_File_one = open("Plan 1", "r")
+Plan_one = json.load(json_File_one)
+
+NO_OF_WAYPOINTS = len(Plan_one)
+
+# Tello follower parameters
+tello_one = Tello()
+tello_two = Tello()
+tello_three = Tello()
 
 def pixels_To_cm(pixels):
     
@@ -76,14 +81,14 @@ def failSafe(tello):
         if retry == (max_retries - 1):
             return
 
-tello.connect()
-tello.takeoff()
+tello_leader.connect()
+tello_leader.takeoff()
 
 for waypoint_index in range(NO_OF_WAYPOINTS):
 
     waypoint_dist = pixels_To_cm(Plan_one[waypoint_index]["distance"])
 
-    flight_motion(tello)
+    flight_motion(tello_leader)
 
     prev_timing = time.time()
 
@@ -94,11 +99,11 @@ for waypoint_index in range(NO_OF_WAYPOINTS):
         Dist_travelled += Speed * time_interval
         prev_timing = current_timing
 
-    tello.send_command_without_return('stop')
+    tello_leader.send_command_without_return('stop')
     time.sleep(3)
-    failSafe(tello)
+    failSafe(tello_leader)
     Dist_travelled = 0.0
 
-tello.land()
-tello.end()
+tello_leader.land()
+tello_leader.end()
 
