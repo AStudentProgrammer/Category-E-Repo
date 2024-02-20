@@ -18,11 +18,6 @@ Plan_one = json.load(json_File_one)
 
 NO_OF_WAYPOINTS = len(Plan_one)
 
-# Tello follower parameters
-tello_one = Tello()
-tello_two = Tello()
-tello_three = Tello()
-
 def pixels_To_cm(pixels):
     
     real_map = 2000 # 2000cm
@@ -80,6 +75,46 @@ def failSafe(tello):
 
         if retry == (max_retries - 1):
             return
+
+# Tello follower parameters
+tello_one = Tello()
+tello_two = Tello()
+tello_three = Tello()
+
+tello_follower_dict = {
+    1 : tello_one,
+    2 : tello_two,
+    3 : tello_three
+}
+
+frame_read = []
+
+def follower_connect():
+    number_of_followers = len(tello_follower_dict)
+
+    for follower in range(number_of_followers):
+        tello_follower_dict[follower+1].connect()
+
+def follower_takeoff():
+    number_of_followers = len(tello_follower_dict)
+
+    for follower in range(number_of_followers):
+        tello_follower_dict[follower+1].send_command_without_return("takeoff") # if wait for return, have to wait for everybody
+
+def follower_movement():
+    number_of_followers = len(tello_follower_dict)
+
+    # for follower in range(number_of_followers):
+        
+def follower_camera_setup():
+    number_of_followers = len(tello_follower_dict)
+
+    for follower in range(number_of_followers):
+        tello_follower_dict[follower+1].streamoff()
+        tello_follower_dict[follower+1].streamoff()
+        frame_read.append(tello_follower_dict[follower+1].get_frame_read()) # to be tested
+
+    return frame_read
 
 tello_leader.connect()
 tello_leader.takeoff()
