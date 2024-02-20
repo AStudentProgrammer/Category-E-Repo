@@ -76,6 +76,17 @@ def failSafe(tello):
         if retry == (max_retries - 1):
             return
 
+def mission_pad_detection(tello):
+    # mission pad detection
+    if tello.get_mission_pad_id() == 1:
+
+        m_id = 1
+
+        tello.send_control_command("stop") # hover
+
+        tello.send_command_without_return("go 0, 0, -100, {speed}, 1".format(Speed))
+        time.sleep(20)
+
 # Tello follower parameters
 tello_one = Tello()
 tello_two = Tello()
@@ -129,6 +140,7 @@ for waypoint_index in range(NO_OF_WAYPOINTS):
 
     while Dist_travelled < waypoint_dist:
         # swarm.sequential(new_mission_pad_detection)
+        mission_pad_detection(tello_leader)
         current_timing = time.time()
         time_interval = current_timing - prev_timing
         Dist_travelled += Speed * time_interval
