@@ -12,7 +12,7 @@ Dist_travelled = 0.0
 Speed = 50
 
 # Tello leader parameters
-tello_leader = Tello(host = "192.168.1.29")
+tello_leader = Tello()
 json_File_one = open("Plan 1", "r")
 Plan_one = json.load(json_File_one)
 
@@ -58,47 +58,51 @@ def failSafe(tello):
         
         except:
             continue
+    
+    try:
+        while tof_value < 1000: # less than 1000mm
+            tello.go_xyz_speed(-20, 0, 0, 10)
 
-    while tof_value < 1000: # less than 1000mm
-        tello.go_xyz_speed(-20, 0, 0, 10)
+            # reregister tof value as int
+            for retry in range(max_retries):
+                try:
 
-        # reregister tof value as int
-        for retry in range(max_retries):
-            try:
+                    tof_value = tello.send_read_command("EXT tof?") # its in string initially
+                    tof_value = int(tof_value[4:]) # attempt to convert to int
+                    break
+                
+                except:
+                    continue
+    except:
+        return
 
-                tof_value = tello.send_read_command("EXT tof?") # its in string initially
-                tof_value = int(tof_value[4:]) # attempt to convert to int
-                break
-        
-            except:
-                continue
-
-        if retry == (max_retries - 1):
-            return
+    if retry == (max_retries - 1):
+        return
 
 def mission_pad_detection(tello):
     # mission pad detection
     if tello.get_mission_pad_id() == 1:
 
-        m_id = 1
+        # tello.send_control_command("stop") # hover
 
-        tello.send_control_command("stop") # hover
-
-        tello.send_command_without_return("go 0, 0, -100, {speed}, 1".format(Speed))
-        time.sleep(20)
+        # tello.send_command_without_return(f"go 0, 0, -50, {Speed}, 1")
+        tello.go_xyz_speed_mid(0,0,-50, Speed,1)
+        tello.land()
+        # time.sleep(20)
+        tello.end()
 
 # Tello follower parameters
-tello_one = Tello()
-tello_two = Tello()
-tello_three = Tello()
+# tello_one = Tello()
+# tello_two = Tello()
+# tello_three = Tello()
 
-tello_follower_dict = {
-    1 : tello_one,
-    2 : tello_two,
-    3 : tello_three
-}
+# tello_follower_dict = {
+#     1 : tello_one,
+#     2 : tello_two,
+#     3 : tello_three
+# }
 
-frame_read = []
+# frame_read = []
 
 def follower_connect():
     number_of_followers = len(tello_follower_dict)
