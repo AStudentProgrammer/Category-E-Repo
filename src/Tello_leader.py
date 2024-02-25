@@ -7,6 +7,12 @@ import cv2
 # Flags
 Land_Flag = 0 # 0000 0000 0000 0000
 
+land_Flag_mask = {
+    "Drone 1" : 1,
+    "Drone 2" : 2,
+    "Drone 3" : 4,
+}
+
 # Drones shared variables/resources
 Dist_travelled = 0.0
 Speed = 50
@@ -79,28 +85,30 @@ def failSafe(tello):
     if retry == (max_retries - 1):
         return
 
-def mission_pad_detection(tello):
+def leader_mission_pad_detection():
     # mission pad detection
-    if tello.get_mission_pad_id() == 1:
+    if tello_leader.get_mission_pad_id() == 1:
 
         # tello.send_control_command("stop") # hover
 
         # tello.send_command_without_return(f"go 0, 0, -50, {Speed}, 1")
-        tello.go_xyz_speed_mid(0,0,-50, Speed,1)
-        tello.land()
+        tello_leader.go_xyz_speed_mid(0,0,-50, Speed,1)
+        tello_leader.land()
         # time.sleep(20)
-        tello.end()
+        tello_leader.end()
+    else:
+        return
 
 # Tello follower parameters
-# tello_one = Tello()
-# tello_two = Tello()
-# tello_three = Tello()
+tello_one = Tello()
+tello_two = Tello()
+tello_three = Tello()
 
-# tello_follower_dict = {
-#     1 : tello_one,
-#     2 : tello_two,
-#     3 : tello_three
-# }
+tello_follower_dict = {
+    1 : tello_one,
+    2 : tello_two,
+    3 : tello_three
+}
 
 # frame_read = []
 
@@ -116,10 +124,23 @@ def follower_takeoff():
     for follower in range(number_of_followers):
         tello_follower_dict[follower+1].send_command_without_return("takeoff") # if wait for return, have to wait for everybody
 
-def follower_movement():
+def follower_stop():
     number_of_followers = len(tello_follower_dict)
 
-    # for follower in range(number_of_followers):
+    for follower in range(number_of_followers):
+        tello_follower_dict[follower+1].send_command_without_return('stop')
+
+def follower_movement():
+    global Land_Flag
+
+    number_of_followers = len(tello_follower_dict)
+
+    for follower in range(number_of_followers):
+
+        if Land_Flag & land_Flag_mask["Drone {}".format(follower + 1)]:
+            continue
+        else:
+            flight_motion(tello_follower_dict[follower+1]) # use flight plan as a replacement for now
         
 def follower_camera_setup():
     number_of_followers = len(tello_follower_dict)
@@ -131,6 +152,49 @@ def follower_camera_setup():
 
     return frame_read
 
+def follower_mission_pad_detection():
+
+    global prev_timing
+    global Land_Flag
+
+    number_of_followers = len(tello_follower_dict)
+    # mission pad detection
+    for follower in range(number_of_followers):
+
+        tello = tello_follower_dict[follower+1]
+
+        if Land_Flag & land_Flag_mask["Drone {}".format(follower + 1)]:
+            continue
+        else:
+            if tello.get_mission_pad_id() == 1:
+
+                tello_leader.send_command_without_return('stop') 
+                follower_stop()
+
+                # tello.send_command_without_return(f"go 0, 0, -50, {Speed}, 1")
+                tello.go_xyz_speed_mid(0,0,-50, Speed,1)
+                tello.land()
+                # time.sleep(20)
+                tello.end()
+
+                # drone_number = 0
+                # for Tellos in tello_follower_dict.values():
+                #     drone_number += 1
+                #     if Tellos == tello:
+                #         Land_Flag += land_Flag_mask["Drone {}".format(drone_number + 1)]
+                #     else:
+                #         continue
+
+                Land_Flag += land_Flag_mask["Drone {}".format(follower + 1)]
+
+                flight_motion(tello_leader)
+                follower_movement()
+                prev_timing = time.time()
+            else:
+                continue
+
+
+# Main code starts here #
 tello_leader.connect()
 tello_leader.takeoff()
 
@@ -143,8 +207,13 @@ for waypoint_index in range(NO_OF_WAYPOINTS):
     prev_timing = time.time()
 
     while Dist_travelled < waypoint_dist:
-        # swarm.sequential(new_mission_pad_detection)
-        mission_pad_detection(tello_leader)
+        if Land_Flag == 8: # 111, all has landed
+            leader_mission_pad_detection()
+
+        else:
+            follower_movement()
+            follower_mission_pad_detection()
+
         current_timing = time.time()
         time_interval = current_timing - prev_timing
         Dist_travelled += Speed * time_interval
