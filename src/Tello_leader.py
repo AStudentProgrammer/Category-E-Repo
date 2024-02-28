@@ -10,15 +10,15 @@ Land_Flag = 0 # 0000 0000 0000 0000
 land_Flag_mask = {
     "Drone 1" : 1,
     "Drone 2" : 2,
-    "Drone 3" : 4,
+    # "Drone 3" : 4,
 }
 
 # Drones shared variables/resources
 Dist_travelled = 0.0
-Speed = 50
+Speed = 30
 
 # Tello leader parameters
-tello_leader = Tello()
+tello_leader = Tello("192.168.1.105")
 json_File_one = open("Plan 1", "r")
 Plan_one = json.load(json_File_one)
 
@@ -46,9 +46,11 @@ def flight_motion(tello):
 
     elif Plan_one[waypoint_index]["motion"] == "rotate_right":
         tello.rotate_clockwise(Plan_one[waypoint_index]["distance"])
+        # tello.send_command_without_return("cw {}".format(Plan_one[waypoint_index]["distance"]))
 
     elif Plan_one[waypoint_index]["motion"] == "rotate_left":
-        tello.rotate_counter_clockwise(Plan_one[waypoint_index]["distance"])     
+        tello.rotate_counter_clockwise(Plan_one[waypoint_index]["distance"])   
+        # tello.send_command_without_return("ccw {}".format(Plan_one[waypoint_index]["distance"]))  
 
 def failSafe(tello):
     # Safety measure func
@@ -99,15 +101,27 @@ def leader_mission_pad_detection():
     else:
         return
 
+def leader_anchor_point():
+    global Dist_travelled
+    global waypoint_dist
+
+    if tello_leader.get_mission_pad_id() == 3:
+        tello_leader.go_xyz_speed_mid(0,0,100,Speed,3)
+        # tello_leader.move_down(50)
+
+        Dist_travelled = waypoint_dist
+    else:
+        return
+
 # Tello follower parameters
-tello_one = Tello()
-tello_two = Tello()
-tello_three = Tello()
+tello_one = Tello("192.168.1.106")
+tello_two = Tello("192.168.1.108")
+# tello_three = Tello()
 
 tello_follower_dict = {
     1 : tello_one,
     2 : tello_two,
-    3 : tello_three
+    # 3 : tello_three
 }
 
 # frame_read = []
@@ -140,6 +154,7 @@ def follower_movement():
         if Land_Flag & land_Flag_mask["Drone {}".format(follower + 1)]:
             continue
         else:
+            time.sleep(0.5)
             flight_motion(tello_follower_dict[follower+1]) # use flight plan as a replacement for now
         
 def follower_camera_setup():
@@ -193,25 +208,47 @@ def follower_mission_pad_detection():
             else:
                 continue
 
+# for testing only. To be deleted
+def pseudo_follower_anchor_point():
+    global Land_Flag
+    global Dist_travelled
+    global waypoint_dist
+    number_of_followers = len(tello_follower_dict)
+
+    for follower in range(number_of_followers):
+
+        if Land_Flag & land_Flag_mask["Drone {}".format(follower + 1)]:
+            continue
+        else:
+            if tello_follower_dict[follower+1].get_mission_pad_id() == 3:
+                tello_follower_dict[follower+1].go_xyz_speed_mid(0,0,100,Speed,3)
+                # tello_follower_dict[follower+1].move_down(50)
+
+                Dist_travelled = waypoint_dist
+            else:
+                return
 
 # Main code starts here #
 tello_leader.connect()
-tello_leader.takeoff()
+follower_connect()
+
+tello_leader.send_command_without_return("takeoff")
+follower_takeoff()
 
 for waypoint_index in range(NO_OF_WAYPOINTS):
 
     waypoint_dist = pixels_To_cm(Plan_one[waypoint_index]["distance"])
 
     flight_motion(tello_leader)
+    follower_movement()
 
     prev_timing = time.time()
 
     while Dist_travelled < waypoint_dist:
-        if Land_Flag == 8: # 111, all has landed
+        if Land_Flag == 4: # 11, all has landed
             leader_mission_pad_detection()
 
         else:
-            follower_movement()
             follower_mission_pad_detection()
 
         current_timing = time.time()
@@ -219,8 +256,12 @@ for waypoint_index in range(NO_OF_WAYPOINTS):
         Dist_travelled += Speed * time_interval
         prev_timing = current_timing
 
+        # leader_anchor_point()
+        # pseudo_follower_anchor_point()
+
     tello_leader.send_command_without_return('stop')
-    time.sleep(3)
+    follower_stop()
+    # time.sleep(3)
     failSafe(tello_leader)
     Dist_travelled = 0.0
 

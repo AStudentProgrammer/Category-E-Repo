@@ -70,9 +70,10 @@ def waypoint_flight(drone_number, tello):
                 tello.send_keepalive()
                 m_id += 1
 
-tello_normal = Tello(host="192.168.1.105")
+tello_normal = Tello(host="192.168.1.105", vs_udp=11112)
 # tello_normal_one = Tello()
 tello_normal.connect()
+tello_normal.send_command_without_return("port 8890 11112")
 # tello_normal_one.connect()
 
 tello_normal.streamoff()
