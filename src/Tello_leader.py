@@ -19,7 +19,6 @@ Speed = 50
 
 # Tello leader parameters
 tello_leader = Tello()
-# tello_leader_two = Tello("192.168.1.106")
 json_File_one = open("Plan 1", "r")
 Plan_one = json.load(json_File_one)
 
@@ -42,18 +41,10 @@ def flight_motion(tello):
     global Speed
 
     if Plan_one[waypoint_index]["motion"] == "forward":
-
         tello.send_rc_control(0, Speed, 0, 0)
-        
-        # tello.go_xyz_speed(waypoint_dist, 0, 0, Speed)
-
  
     elif Plan_one[waypoint_index]["motion"] == "backward":
-        # time.sleep(1)
-        # tello.send_command_without_return("go {x}, 0, 0, {speed}".format(x = waypoint_dist, speed = Speed))
-        # time.sleep(1)
         tello.send_rc_control(0, -Speed, 0, 0)
-        # tello.go_xyz_speed(waypoint_dist, 0, 0, Speed)
 
     elif Plan_one[waypoint_index]["motion"] == "rotate_right":
         tello.rotate_clockwise(Plan_one[waypoint_index]["distance"])
@@ -104,7 +95,6 @@ def leader_mission_pad_detection(tello, mid):
 
         tello.go_xyz_speed_mid(0,0,-50, Speed,mid)
         tello.land()
-        # time.sleep(20)
         tello.end()
     else:
         return
@@ -233,52 +223,31 @@ def pseudo_follower_anchor_point():
 
 # Main code starts here #
 tello_leader.connect()
-# tello_leader_two.connect()
-# follower_connect()
-
-# follower_takeoff()
 tello_leader.takeoff()
-# tello_leader_two.takeoff()
-# tello_leader_two.send_rc_control(0,0,0,0)
-time.sleep(2)
 
 for waypoint_index in range(NO_OF_WAYPOINTS):
 
     waypoint_dist = pixels_To_cm(Plan_one[waypoint_index]["distance"])
 
     flight_motion(tello_leader)
-    # flight_motion(tello_leader_two)
-    # follower_movement()
 
     prev_timing = time.time()
 
     while Dist_travelled < waypoint_dist:
-        # if Land_Flag == 4: # 11, all has landed
-        #     leader_mission_pad_detection()
 
-        # else:
-        #     follower_mission_pad_detection()
         leader_mission_pad_detection(tello_leader, 2)
-        # leader_mission_pad_detection(tello_leader_two, 2)
 
         current_timing = time.time()
         time_interval = current_timing - prev_timing
         Dist_travelled += Speed * time_interval
         prev_timing = current_timing
-        # pseudo_follower_anchor_point()
-    tello_leader.send_rc_control(0,0,0,0)
-    # tello_leader_two.send_command_without_return('stop')
-    # time.sleep(1)
-    # follower_stop()
-    # time.sleep(3)
-    # leader_anchor_point(tello_leader_two, 3, -50)
+
+    tello_leader.send_rc_control(0,0,0,0) # Stop the drone after command from flight motion
     leader_anchor_point(tello_leader, 3, 50)
     failSafe(tello_leader)
     time.sleep(2)
     Dist_travelled = 0.0
 
 tello_leader.land()
-# tello_leader_two.land()
 tello_leader.end()
-# tello_leader_two.end()
 
