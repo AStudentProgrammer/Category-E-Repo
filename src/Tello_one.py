@@ -1,0 +1,131 @@
+import time
+from djitellopy import Tello
+import json
+import numpy as np
+import cv2
+
+# Drones shared variables/resources
+Dist_travelled = 0.0
+Speed = 50
+
+# Tello leader parameters
+tello_leader = Tello()
+json_File_one = open("Plan 1", "r")
+Plan_one = json.load(json_File_one)
+
+NO_OF_WAYPOINTS = len(Plan_one)
+
+def pixels_To_cm(pixels):
+    
+    real_map = 2000 # 2000cm
+    picture_map = 500 # 500 pixels
+
+    cm = (real_map/picture_map) * pixels
+    return int(cm)
+
+def flight_motion(tello):
+    global waypoint_index
+    global Dist_travelled
+
+    global Speed
+
+    if Plan_one[waypoint_index]["motion"] == "forward":
+        tello.send_rc_control(0, Speed, 0, 0)
+ 
+    elif Plan_one[waypoint_index]["motion"] == "backward":
+        tello.send_rc_control(0, -Speed, 0, 0)
+
+    elif Plan_one[waypoint_index]["motion"] == "rotate_right":
+        tello.rotate_clockwise(Plan_one[waypoint_index]["distance"])
+        Dist_travelled = 90
+
+    elif Plan_one[waypoint_index]["motion"] == "rotate_left":
+        tello.rotate_counter_clockwise(Plan_one[waypoint_index]["distance"])   
+        Dist_travelled = 90
+
+def failSafe(tello):
+    # Safety measure func
+    # register tof value as int
+    max_retries = 1
+
+    for retry in range(max_retries):
+        try:
+
+            tof_value = tello.send_read_command("EXT tof?") # its in string initially
+            tof_value = int(tof_value[4:]) # attempt to convert to int
+            break
+        
+        except:
+            continue
+    
+    try:
+        while tof_value < 1000: # less than 1000mm
+            tello.go_xyz_speed(-20, 0, 0, 10)
+
+            # reregister tof value as int
+            for retry in range(max_retries):
+                try:
+
+                    tof_value = tello.send_read_command("EXT tof?") # its in string initially
+                    tof_value = int(tof_value[4:]) # attempt to convert to int
+                    break
+                
+                except:
+                    continue
+    except:
+        return
+
+    if retry == (max_retries - 1):
+        return
+
+def leader_mission_pad_detection(tello, mid):
+    # mission pad detection
+    if tello.get_mission_pad_id() == mid:
+
+        tello.go_xyz_speed_mid(0,0,-50, Speed,mid)
+        tello.land()
+        tello.end()
+    else:
+        return
+
+def leader_anchor_point(tello, mid, x):
+    global Dist_travelled
+    global waypoint_dist
+
+    if tello.get_mission_pad_id() == mid:
+        tello.go_xyz_speed_mid(x,0,100,Speed,mid)
+
+        Dist_travelled = waypoint_dist
+    else:
+        return
+
+# Main code starts here #
+tello_leader.connect(False)
+tello_leader.takeoff()
+
+for waypoint_index in range(NO_OF_WAYPOINTS):
+
+    waypoint_dist = pixels_To_cm(Plan_one[waypoint_index]["distance"])
+
+    flight_motion(tello_leader)
+
+    prev_timing = time.time()
+
+    while Dist_travelled < waypoint_dist:
+
+        leader_mission_pad_detection(tello_leader, 1)
+
+        current_timing = time.time()
+        time_interval = current_timing - prev_timing
+        Dist_travelled += Speed * time_interval
+        prev_timing = current_timing
+
+    tello_leader.send_rc_control(0,0,0,0) # Stop the drone after command from flight motion
+    leader_anchor_point(tello_leader, 3, 50)
+    failSafe(tello_leader)
+    time.sleep(2)
+    Dist_travelled = 0.0
+
+tello_leader.land()
+tello_leader.end()
+
