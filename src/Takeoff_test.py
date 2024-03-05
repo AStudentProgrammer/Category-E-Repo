@@ -8,7 +8,7 @@ import cv2
 tello_leader = Tello()
 
 # Main code starts here #
-tello_leader.connect(False)
+tello_leader.connect()
 tello_leader.takeoff()
 tello_leader.land()
 tello_leader.end()

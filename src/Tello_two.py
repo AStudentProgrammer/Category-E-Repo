@@ -100,7 +100,7 @@ def leader_anchor_point(tello, mid, x):
         return
 
 # Main code starts here #
-tello_leader.connect(False)
+tello_leader.connect()
 tello_leader.takeoff()
 
 for waypoint_index in range(NO_OF_WAYPOINTS):
