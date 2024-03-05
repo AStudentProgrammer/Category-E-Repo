@@ -4,15 +4,6 @@ import json
 import numpy as np
 import cv2
 
-# Flags
-Land_Flag = 0 # 0000 0000 0000 0000
-
-land_Flag_mask = {
-    "Drone 1" : 1,
-    "Drone 2" : 2,
-    # "Drone 3" : 4,
-}
-
 # Drones shared variables/resources
 Dist_travelled = 0.0
 Speed = 50
@@ -33,11 +24,9 @@ def pixels_To_cm(pixels):
     return int(cm)
 
 def flight_motion(tello):
-    global Land_Flag
     global waypoint_index
     global Dist_travelled
 
-    global waypoint_dist
     global Speed
 
     if Plan_one[waypoint_index]["motion"] == "forward":
