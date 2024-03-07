@@ -93,7 +93,7 @@ def leader_anchor_point(tello, mid, x):
     global waypoint_dist
 
     if tello.get_mission_pad_id() == mid:
-        tello.go_xyz_speed_mid(x,50,100,Speed,mid)
+        tello.go_xyz_speed_mid(x,-50,100,Speed,mid)
 
         Dist_travelled = waypoint_dist
     else:
