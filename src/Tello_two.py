@@ -102,7 +102,7 @@ def leader_anchor_point(tello, mid, x):
 # Main code starts here #
 tello_leader.connect()
 tello_leader.takeoff()
-tello_leader.move_up(40)
+tello_leader.go_xyz_speed_mid(0,0,120,Speed,1)
 
 for waypoint_index in range(NO_OF_WAYPOINTS):
 
@@ -114,7 +114,7 @@ for waypoint_index in range(NO_OF_WAYPOINTS):
 
     while Dist_travelled < waypoint_dist:
 
-        leader_mission_pad_detection(tello_leader, 1)
+        leader_mission_pad_detection(tello_leader, 2)
 
         current_timing = time.time()
         time_interval = current_timing - prev_timing
