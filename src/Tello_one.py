@@ -6,7 +6,7 @@ import cv2
 
 # Drones shared variables/resources
 Dist_travelled = 0.0
-Speed = 50
+Speed = 40
 
 # Tello leader parameters
 tello_leader = Tello()
@@ -93,7 +93,7 @@ def leader_anchor_point(tello, mid, x):
     global waypoint_dist
 
     if tello.get_mission_pad_id() == mid:
-        tello.go_xyz_speed_mid(x,0,100,Speed,mid)
+        tello.go_xyz_speed_mid(x,0,120,Speed,mid)
 
         Dist_travelled = waypoint_dist
     else:
@@ -102,6 +102,7 @@ def leader_anchor_point(tello, mid, x):
 # Main code starts here #
 tello_leader.connect()
 tello_leader.takeoff()
+tello_leader.move_up(40)
 
 for waypoint_index in range(NO_OF_WAYPOINTS):
 
