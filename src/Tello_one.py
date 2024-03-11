@@ -6,7 +6,7 @@ import cv2
 
 # Drones shared variables/resources
 Dist_travelled = 0.0
-Speed = 40
+Speed = 30
 
 # Tello leader parameters
 tello_leader = Tello()
@@ -102,7 +102,7 @@ def leader_anchor_point(tello, mid, x):
 # Main code starts here #
 tello_leader.connect()
 tello_leader.takeoff()
-tello_leader.go_xyz_speed_mid(0,0,120,Speed,1)
+tello_leader.go_xyz_speed_mid(0,0,120,Speed,8)
 
 for waypoint_index in range(NO_OF_WAYPOINTS):
 
@@ -114,7 +114,7 @@ for waypoint_index in range(NO_OF_WAYPOINTS):
 
     while Dist_travelled < waypoint_dist:
 
-        leader_mission_pad_detection(tello_leader, 2)
+        leader_mission_pad_detection(tello_leader, 1)
 
         current_timing = time.time()
         time_interval = current_timing - prev_timing
@@ -122,7 +122,7 @@ for waypoint_index in range(NO_OF_WAYPOINTS):
         prev_timing = current_timing
 
     tello_leader.send_rc_control(0,0,0,0) # Stop the drone after command from flight motion
-    leader_anchor_point(tello_leader, 3, 50)
+    leader_anchor_point(tello_leader, 3, 0)
     failSafe(tello_leader)
     time.sleep(2)
     Dist_travelled = 0.0
