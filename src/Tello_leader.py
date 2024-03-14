@@ -102,7 +102,10 @@ def leader_anchor_point(tello, mid, x):
 # Main code starts here #
 tello_leader.connect()
 tello_leader.takeoff()
-tello_leader.go_xyz_speed_mid(0,0,120,Speed,1)
+tello_leader.go_xyz_speed_mid(0,0,120,Speed,8)
+tello_leader.disable_mission_pads()
+tello_leader.enable_mission_pads()
+time.sleep(2)
 
 for waypoint_index in range(NO_OF_WAYPOINTS):
 
@@ -122,9 +125,11 @@ for waypoint_index in range(NO_OF_WAYPOINTS):
         prev_timing = current_timing
 
     tello_leader.send_rc_control(0,0,0,0) # Stop the drone after command from flight motion
-    leader_anchor_point(tello_leader, 3, 20)
-    failSafe(tello_leader)
+    tello_leader.disable_mission_pads()
+    tello_leader.enable_mission_pads()
     time.sleep(2)
+    leader_anchor_point(tello_leader, 3, 0)
+    failSafe(tello_leader)
     Dist_travelled = 0.0
 
 tello_leader.land()
