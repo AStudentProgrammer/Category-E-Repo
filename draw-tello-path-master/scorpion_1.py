@@ -13,7 +13,7 @@ GREEN = "#b7d5ac"
 BLUE = "#797EF6"
 PICTIONBLUE = "#1AA7EC"
 WHITE ="#FFFFFF"
-START_POSITION = (-170, -79)  # Drone start position
+START_POSITION = (-170, -150)  # Drone start position
 
 
 """Screen setup"""
