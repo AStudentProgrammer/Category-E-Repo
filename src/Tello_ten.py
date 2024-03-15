@@ -10,7 +10,7 @@ Speed = 30
 
 # Tello leader parameters
 tello_leader = Tello()
-json_File_one = open("Plan 4", "r")
+json_File_one = open("Plan 3", "r")
 Plan_one = json.load(json_File_one)
 
 NO_OF_WAYPOINTS = len(Plan_one)

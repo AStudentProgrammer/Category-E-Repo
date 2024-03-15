@@ -10,7 +10,7 @@ Speed = 30
 
 # Tello leader parameters
 tello_leader = Tello()
-json_File_one = open("Plan 4", "r")
+json_File_one = open("Plan 1", "r")
 Plan_one = json.load(json_File_one)
 
 NO_OF_WAYPOINTS = len(Plan_one)
@@ -82,7 +82,7 @@ def leader_mission_pad_detection(tello, mid):
     # mission pad detection
     if tello.get_mission_pad_id() == mid:
 
-        tello.go_xyz_speed_mid(0,0,-50, Speed,mid)
+        tello.go_xyz_speed_mid(0,0,-40, Speed,mid)
         tello.land()
         tello.end()
     else:
@@ -128,7 +128,7 @@ for waypoint_index in range(NO_OF_WAYPOINTS):
     tello_leader.disable_mission_pads()
     tello_leader.enable_mission_pads()
     time.sleep(2)
-    leader_anchor_point(tello_leader, 5, 0)
+    leader_anchor_point(tello_leader, 6, 0)
     failSafe(tello_leader)
     Dist_travelled = 0.0
 
