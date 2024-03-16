@@ -6,7 +6,7 @@ import cv2
 
 # Drones shared variables/resources
 Dist_travelled = 0.0
-Speed = 30
+Speed = 50
 
 # Tello leader parameters
 tello_leader = Tello()
