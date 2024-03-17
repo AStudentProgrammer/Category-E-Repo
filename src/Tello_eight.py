@@ -7,6 +7,7 @@ import cv2
 # Drones shared variables/resources
 Dist_travelled = 0.0
 Speed = 30
+Wake_up_time = 0
 
 # Tello leader parameters
 tello_leader = Tello()
@@ -121,6 +122,10 @@ for waypoint_index in range(NO_OF_WAYPOINTS):
 
         current_timing = time.time()
         time_interval = current_timing - prev_timing
+        Wake_up_time += time_interval
+        if Wake_up_time > 10.0:
+            tello_leader.query_active()
+            Wake_up_time = 0.0
         Dist_travelled += Speed * time_interval
         prev_timing = current_timing
 
