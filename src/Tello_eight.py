@@ -123,9 +123,13 @@ for waypoint_index in range(NO_OF_WAYPOINTS):
         current_timing = time.time()
         time_interval = current_timing - prev_timing
         Wake_up_time += time_interval
-        if Wake_up_time > 10.0:
-            tello_leader.query_battery()
-            Wake_up_time = 0.0
+        if Wake_up_time > 5.0:
+            try:
+                tello_leader.query_battery()
+                Wake_up_time = 0.0
+
+            except:
+                Wake_up_time = Wake_up_time
         Dist_travelled += Speed * time_interval
         prev_timing = current_timing
 
