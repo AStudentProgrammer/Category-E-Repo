@@ -79,13 +79,20 @@ def failSafe(tello):
     if retry == (max_retries - 1):
         return
 
-def leader_mission_pad_detection(tello, mid):
+def leader_mission_pad_detection(tello):
     # mission pad detection
-    if tello.get_mission_pad_id() == mid:
+    if tello.get_mission_pad_id() == 1:
 
-        tello.go_xyz_speed_mid(0,0,-50, Speed,mid)
+        tello.go_xyz_speed_mid(0,0,-50, Speed, 1)
         tello.land()
         tello.end()
+
+    elif tello.get_mission_pad_id() == 2:
+
+        tello.go_xyz_speed_mid(0,0,-50, Speed, 2)
+        tello.land()
+        tello.end() 
+
     else:
         return
 
@@ -118,7 +125,7 @@ for waypoint_index in range(NO_OF_WAYPOINTS):
 
     while Dist_travelled < waypoint_dist:
 
-        leader_mission_pad_detection(tello_leader, 1)
+        leader_mission_pad_detection(tello_leader)
 
         current_timing = time.time()
         time_interval = current_timing - prev_timing
