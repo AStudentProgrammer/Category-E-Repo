@@ -1,62 +1,40 @@
-# Set simple swarm code for now
-from djitellopy import TelloSwarm
 import time
+from djitellopy import Tello
+import json
+import numpy as np
+import cv2
 
-# Collated list of Tellos to connect to
-swarm = TelloSwarm.fromIps([
-    "192.168.1.101",
-    "192.168.1.102",
-    "192.168.1.103",
-    "192.168.1.104",
-    "192.168.1.105",
-    "192.168.1.106",
-    "192.168.1.107",
-    "192.168.1.108",
-    "192.168.1.109",
-    "192.168.1.110",
-    "192.168.1.111",
-    "192.168.1.112",
-    "192.168.1.113",
-    "192.168.1.114",
-    "192.168.1.115",
-    "192.168.1.116"
-])
+json_File_one = open("Plan 1", "r")
+Plan_one = json.load(json_File_one)
 
-def battery_checker(drone_number, tello):
-    tello.query_battery()
+tello_normal = Tello(host="192.168.1.105", vs_udp=11111)
+tello_normal_six = Tello(host="192.168.1.106", vs_udp=11112)
 
-def left_movement(drone_number, tello):
-    if drone_number <= 1:               # drone_number start from 0
-        tello.move_left(100) 
+tello_normal.connect()
+tello_normal_six.connect()
 
-def right_movement(drone_number, tello):
-    if drone_number > 1:
-        tello.move_right(100)
+tello_normal.send_command_with_return("port 8890 11111")
+tello_normal_six.send_command_with_return("port 8890 11112")
 
-def forward_movement(drone_number, tello):
-    tello.move_forward(50)
-    swarm.sync()
+tello_normal.streamoff()
+tello_normal.streamon()
 
-def up_movement(drone_number, tello):
-    tello.move_up(25)
-    swarm.sync()
+tello_normal_six.streamoff()
+tello_normal_six.streamon()
 
-def square_movement(drone_number, tello):
+frame_read = tello_normal.get_frame_read()
+frame_read_six = tello_normal_six.get_frame_read()
 
-    # Fly relative to its current position
-    tello.go_xyz_speed(0, -25, 0, 25)
-    swarm.sync()
-    tello.go_xyz_speed(25, 0, 0, 25)
-    swarm.sync()
-    tello.go_xyz_speed(0, 25, 0, 25)
-    swarm.sync()
-    tello.go_xyz_speed(-25, 0, 0, 25)
-    swarm.sync()
+# tello.takeoff()
 
-# main code
-swarm.connect()
-swarm.takeoff()
-swarm.parallel(square_movement)
-swarm.land()
+while True:
 
-swarm.end()
+    img = frame_read.frame
+    img_six = frame_read_six.frame
+    cv2.imshow("drone", img)
+    cv2.imshow("drone 6 ", img_six)
+
+    key = cv2.waitKey(1) & 0xff
+    if key == 27: # ESC
+        break
+
